@@ -8,14 +8,17 @@ import org.apache.commons.io.FileUtils;
 
 import android.R.layout;
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.AdapterView.OnItemLongClickListener;
 
 public class TodoActivity extends Activity {
@@ -24,6 +27,7 @@ public class TodoActivity extends Activity {
 	private ArrayAdapter<String> todoAdapter;
 	private ListView lvItems;
 	private EditText etNewItem;
+	private final int REQUEST_CODE = 20;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -50,7 +54,31 @@ public class TodoActivity extends Activity {
 				return true;
 			}
 		});
+		
+		lvItems.setOnItemClickListener(new OnItemClickListener() {
+			public void onItemClick(AdapterView<?> adapter, View item, int pos, long id) {
+				Intent i = new Intent(TodoActivity.this, EditActivity.class);
+				i.putExtra("itemText", ((TextView) item).getText());
+				i.putExtra("rowId", id);
+				i.putExtra("mode", 2);
+				startActivityForResult(i, REQUEST_CODE); // brings up the second activity
+				
+			}
+		});
 	}
+	
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		if (resultCode == RESULT_OK && requestCode == REQUEST_CODE) {
+			String name = data.getExtras().getString("name");
+			long rowId = data.getExtras().getLong("rowId");
+			todoItems.set((int) rowId, name);
+			todoAdapter.notifyDataSetChanged();
+			writeItems();
+		}
+		
+	}
+	
 	public void onAddedItem(View v) {
 		String itemText = etNewItem.getText().toString();
 		todoAdapter.add(itemText);
